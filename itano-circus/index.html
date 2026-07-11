@@ -1,0 +1,88 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#05070b" />
+  <meta name="description" content="AEGIS-09: an original real-time Three.js mecha missile-circus chase through a stylized New York City." />
+  <title>AEGIS-09 — Itano Run</title>
+  <link rel="stylesheet" href="./styles.css" />
+</head>
+<body>
+  <main id="app">
+    <canvas id="scene" aria-label="Real-time three-dimensional mecha chase animation"></canvas>
+
+    <div id="flash" aria-hidden="true"></div>
+    <div id="vignette" aria-hidden="true"></div>
+    <div id="grain" aria-hidden="true"></div>
+    <div class="letterbox letterbox--top" aria-hidden="true"></div>
+    <div class="letterbox letterbox--bottom" aria-hidden="true"></div>
+
+    <section id="intro" class="intro-panel" aria-labelledby="title">
+      <div class="eyebrow">REAL-TIME THREE.JS CINEMATIC</div>
+      <h1 id="title">AEGIS-09<br><span>ITANO RUN</span></h1>
+      <p>An original real-robot mecha threads a forty-eight-missile kill box through a neon Manhattan canyon.</p>
+      <button id="start" type="button">
+        <span>Launch sequence</span>
+        <span class="button-code">RUN / 00:34</span>
+      </button>
+      <div class="feature-row">
+        <span>48 guided missiles</span>
+        <span>6 camera setups</span>
+        <span>procedural city + audio</span>
+      </div>
+    </section>
+
+    <section id="hud" aria-label="Animation controls and sequence status">
+      <div class="hud-top">
+        <div>
+          <div class="hud-kicker">UNIT / AEGIS-09</div>
+          <div id="shot-name" class="hud-shot">MANHATTAN VECTOR</div>
+        </div>
+        <div class="hud-time">
+          <span id="camera-name">CINEMATIC</span>
+          <b id="timecode">00:00.000</b>
+        </div>
+      </div>
+
+      <aside class="threat-panel">
+        <div class="micro-label">MISSILE LOCKS</div>
+        <div class="threat-count"><span id="lock-count">00</span><small> / 48</small></div>
+        <div class="threat-bars" aria-hidden="true">
+          <i></i><i></i><i></i><i></i><i></i><i></i><i></i><i></i>
+        </div>
+      </aside>
+
+      <aside class="armor-panel">
+        <div class="armor-row"><span>ARMOR</span><b id="armor-value">100%</b></div>
+        <div class="armor-track"><i id="armor-bar"></i></div>
+      </aside>
+
+      <div class="timeline" aria-hidden="true">
+        <i id="timeline-progress"></i>
+        <span style="left:53%"></span>
+        <span style="left:83%"></span>
+      </div>
+
+      <div class="controls">
+        <button id="pause" type="button">Pause</button>
+        <button id="camera" type="button">Camera</button>
+        <button id="sound" type="button">Sound on</button>
+        <button id="replay" type="button">Replay</button>
+      </div>
+      <div class="hint">SPACE pause · C camera · M sound · R replay</div>
+    </section>
+
+    <section id="fallback" class="intro-panel fallback" hidden>
+      <div class="eyebrow">WEBGL UNAVAILABLE</div>
+      <h2>Hardware-accelerated WebGL is required.</h2>
+      <p>Open this page in a current browser with graphics acceleration enabled.</p>
+    </section>
+  </main>
+
+  <script type="module">
+const files=["app-00.part","app-01.part","app-02.part","app-03.part"];
+try{const code=(await Promise.all(files.map(async file=>{const response=await fetch(file);if(!response.ok)throw new Error(`Failed to load ${file}: ${response.status}`);return response.text();}))).join("");await import(URL.createObjectURL(new Blob([code],{type:"text/javascript"})));}catch(error){console.error(error);document.querySelector("#fallback").hidden=false;document.querySelector("#intro").hidden=true;}
+</script>
+</body>
+</html>
