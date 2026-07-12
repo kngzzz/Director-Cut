@@ -74,15 +74,63 @@
     </section>
 
     <section id="fallback" class="intro-panel fallback" hidden>
-      <div class="eyebrow">WEBGL UNAVAILABLE</div>
-      <h2>Hardware-accelerated WebGL is required.</h2>
-      <p>Open this page in a current browser with graphics acceleration enabled.</p>
+      <div id="error-kicker" class="eyebrow">INITIALIZATION ERROR</div>
+      <h2 id="error-title">The animation could not start.</h2>
+      <p id="error-message">Reload the page to retry.</p>
     </section>
   </main>
 
   <script type="module">
-const files=["app-00.part","app-01.part","app-02.part","app-03.part"];
-try{const code=(await Promise.all(files.map(async file=>{const response=await fetch(file);if(!response.ok)throw new Error(`Failed to load ${file}: ${response.status}`);return response.text();}))).join("");await import(URL.createObjectURL(new Blob([code],{type:"text/javascript"})));}catch(error){console.error(error);document.querySelector("#fallback").hidden=false;document.querySelector("#intro").hidden=true;}
-</script>
+    const files = ["app-00.part", "app-01.part", "app-02.part", "app-03.part"];
+    const fallback = document.querySelector("#fallback");
+    const intro = document.querySelector("#intro");
+    const errorKicker = document.querySelector("#error-kicker");
+    const errorTitle = document.querySelector("#error-title");
+    const errorMessage = document.querySelector("#error-message");
+
+    const showError = (error) => {
+      console.error("AEGIS-09 initialization failed", error);
+      const message = error instanceof Error ? error.message : String(error);
+      const webglFailure = /webgl|context|gpu|renderer/i.test(message);
+      errorKicker.textContent = webglFailure ? "WEBGL INITIALIZATION ERROR" : "RUNTIME INITIALIZATION ERROR";
+      errorTitle.textContent = webglFailure
+        ? "The browser could not create a WebGL context."
+        : "The animation runtime could not start.";
+      errorMessage.textContent = `${message} Reload once; if it persists, open the browser console and copy the first red error.`;
+      fallback.hidden = false;
+      intro.hidden = true;
+    };
+
+    try {
+      const chunks = await Promise.all(files.map(async (file) => {
+        const response = await fetch(file, { cache: "no-store" });
+        if (!response.ok) throw new Error(`Failed to load ${file}: HTTP ${response.status}`);
+        return response.text();
+      }));
+
+      let code = chunks.join("");
+
+      // Repair the two GLSL literals that were serialized with raw line breaks.
+      // Raw newlines are invalid inside quoted JavaScript strings, but valid in template literals.
+      const tick = "\x60";
+      let repairedShaderCount = 0;
+      code = code.replace(/:"\n([\s\S]*?)\n\s*"/g, (_match, shaderSource) => {
+        repairedShaderCount += 1;
+        return ":" + tick + "\n" + shaderSource + "\n" + tick;
+      });
+      if (repairedShaderCount !== 2) {
+        throw new Error(`Shader repair expected 2 blocks but found ${repairedShaderCount}`);
+      }
+
+      const moduleUrl = URL.createObjectURL(new Blob([code], { type: "text/javascript" }));
+      try {
+        await import(moduleUrl);
+      } finally {
+        URL.revokeObjectURL(moduleUrl);
+      }
+    } catch (error) {
+      showError(error);
+    }
+  </script>
 </body>
 </html>
